@@ -1,11 +1,28 @@
-
 const mongoose = require("mongoose");
 
 const requestSchema = new mongoose.Schema({
-  fromUser: String,
-  toUser: String,
-  tripId: String,
-  status: { type: String, default: "pending" }
+
+  fromUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+
+  toUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+
+  tripId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Trip"
+  },
+
+  status: {
+    type: String,
+    default: "pending"
+  }
+
 });
 
-module.exports = mongoose.model("Request", requestSchema);
+module.exports =
+  mongoose.model("Request", requestSchema);

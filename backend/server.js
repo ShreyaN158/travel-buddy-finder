@@ -17,6 +17,7 @@ app.use("/api/chat", require("./routes/chatRoutes"));
 app.listen(5000, () => console.log("Server running on 5000"));*/
 
 
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -24,6 +25,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -34,6 +36,7 @@ const io = new Server(server, {
 });
 
 app.use(cors());
+
 app.use(express.json());
 
 mongoose.connect(
@@ -77,6 +80,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(5001, () => {
-  console.log("Server running on port 5001");
+server.listen(5000, () => {
+  console.log("Server running on port 5000");
 });

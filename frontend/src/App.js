@@ -7,16 +7,31 @@ const socket = io("http://localhost:5000");
 
 function App() {
 
+  // ---------------- STATES ----------------
+
   const [user, setUser] = useState(null);
+
   const [trips, setTrips] = useState([]);
+
   const [requests, setRequests] = useState([]);
+
   const [message, setMessage] = useState("");
+
   const [chatUser, setChatUser] = useState(null);
+
   const [chat, setChat] = useState([]);
+
   const [onlineUsers, setOnlineUsers] = useState([]);
 
+  const [selectedLocation, setSelectedLocation] =
+    useState(null);
+
+  const [destinationName, setDestinationName] =
+    useState("");
+
+  const [page, setPage] = useState("trips");
+
   const [form, setForm] = useState({
-    destination: "",
     startDate: "",
     endDate: "",
     interests: ""
@@ -28,47 +43,54 @@ function App() {
     password: ""
   });
 
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  // ---------------- SOCKET JOIN ----------------
 
-const [destinationName, setDestinationName] = useState("");
-
-  // SOCKET JOIN
   useEffect(() => {
+
     if (user) {
       socket.emit("join", user._id);
     }
+
   }, [user]);
 
-  // RECEIVE LIVE MESSAGES
+  // ---------------- RECEIVE LIVE CHAT ----------------
+
   useEffect(() => {
 
     socket.on("receive-message", (data) => {
+
       setChat(prev => [...prev, data]);
+
     });
 
     return () => socket.off("receive-message");
 
   }, []);
 
-  // ONLINE USERS
+  // ---------------- ONLINE USERS ----------------
+
   useEffect(() => {
 
     socket.on("online-users", (users) => {
+
       setOnlineUsers(users);
+
     });
 
     return () => socket.off("online-users");
 
   }, []);
 
-  // AUTH
+  // ---------------- AUTH ----------------
+
   const register = async () => {
+
     await axios.post(
       "http://localhost:5000/api/auth/register",
       auth
     );
 
-    alert("Registered");
+    alert("Registered Successfully");
   };
 
   const login = async () => {
@@ -86,11 +108,12 @@ const [destinationName, setDestinationName] = useState("");
 
       console.log(err);
 
-      alert(err.response?.data || "Login failed");
+      alert(err.response?.data || "Login Failed");
     }
   };
 
-  // LOAD TRIPS
+  // ---------------- LOAD TRIPS ----------------
+
   const loadTrips = () => {
 
     axios
@@ -98,24 +121,45 @@ const [destinationName, setDestinationName] = useState("");
       .then(res => setTrips(res.data));
   };
 
-  // CREATE TRIP
+  // ---------------- CREATE TRIP ----------------
+
   const createTrip = async () => {
 
-  await axios.post(
-    "http://localhost:5000/api/trips/create",
-    {
-      ...form,
-      userId: user._id,
-      interests: form.interests.split(","),
-      location: selectedLocation,
-      destinationName
+    await axios.post(
+      "http://localhost:5000/api/trips/create",
+      {
+        ...form,
+        destination: destinationName,
+        userId: user._id,
+        interests: form.interests.split(","),
+        location: selectedLocation,
+        destinationName
+      }
+    );
+
+    loadTrips();
+
+    alert("Trip Created");
+  };
+
+  // ---------------- FIND NEARBY ----------------
+
+  const findNearby = async () => {
+
+    if (!selectedLocation) {
+      alert("Select location first");
+      return;
     }
-  );
 
-  loadTrips();
-};
+    const res = await axios.get(
+      `http://localhost:5000/api/trips/nearby/${selectedLocation.lat}/${selectedLocation.lng}`
+    );
 
-  // SEND REQUEST
+    setTrips(res.data);
+  };
+
+  // ---------------- SEND REQUEST ----------------
+
   const sendRequest = async (trip) => {
 
     await axios.post(
@@ -127,10 +171,11 @@ const [destinationName, setDestinationName] = useState("");
       }
     );
 
-    alert("Request sent");
+    alert("Request Sent");
   };
 
-  // LOAD REQUESTS
+  // ---------------- LOAD REQUESTS ----------------
+
   const loadRequests = () => {
 
     axios
@@ -140,7 +185,8 @@ const [destinationName, setDestinationName] = useState("");
       .then(res => setRequests(res.data));
   };
 
-  // ACCEPT REQUEST
+  // ---------------- ACCEPT REQUEST ----------------
+
   const acceptRequest = async (id) => {
 
     await axios.put(
@@ -150,7 +196,8 @@ const [destinationName, setDestinationName] = useState("");
     loadRequests();
   };
 
-  // REJECT REQUEST
+  // ---------------- REJECT REQUEST ----------------
+
   const rejectRequest = async (id) => {
 
     await axios.put(
@@ -160,11 +207,12 @@ const [destinationName, setDestinationName] = useState("");
     loadRequests();
   };
 
-  // LOAD CHAT
+  // ---------------- LOAD CHAT ----------------
+
   const loadChat = (otherUser) => {
 
     if (!otherUser) {
-      alert("Invalid user");
+      alert("Invalid User");
       return;
     }
 
@@ -179,329 +227,403 @@ const [destinationName, setDestinationName] = useState("");
 
         console.log(err);
 
-        alert("Failed to load chat");
+        alert("Failed To Load Chat");
       });
   };
 
-  // SEND MESSAGE
+  // ---------------- SEND MESSAGE ----------------
+
   const sendMessage = async () => {
 
-  if (!message) return;
+    if (!message) return;
 
-  const msgData = {
-    sender: user._id,
-    receiver: chatUser,
-    message
+    const msgData = {
+      sender: user._id,
+      receiver: chatUser,
+      message
+    };
+
+    await axios.post(
+      "http://localhost:5000/api/chat/send",
+      msgData
+    );
+
+    socket.emit("send-message", msgData);
+
+    setMessage("");
   };
 
-  await axios.post(
-    "http://localhost:5000/api/chat/send",
-    msgData
-  );
+  // ---------------- INITIAL LOAD ----------------
 
-  socket.emit("send-message", msgData);
-
-  setMessage("");
-};
-
-  const findNearby = async () => {
-
-  const res = await axios.get(
-    `http://localhost:5000/api/trips/nearby/${selectedLocation.lat}/${selectedLocation.lng}`
-  );
-
-  setTrips(res.data);
-};
-  // LOAD INITIAL DATA
   useEffect(() => {
 
     if (user) {
+
       loadTrips();
+
       loadRequests();
     }
 
   }, [user]);
 
-  // LOGIN PAGE
+  // ---------------- LOGIN PAGE ----------------
+
   if (!user) {
 
     return (
 
-      <div style={{ padding: 20 }}>
+      <div className="main-container">
 
-        <h1>Travel Buddy Finder</h1>
+        <div className="card">
 
-        <input
-          placeholder="Name"
-          onChange={e =>
-            setAuth({
-              ...auth,
-              name: e.target.value
-            })
-          }
-        />
+          <h1>🌍 Travel Buddy Finder</h1>
 
-        <input
-          placeholder="Email"
-          onChange={e =>
-            setAuth({
-              ...auth,
-              email: e.target.value
-            })
-          }
-        />
+          <input
+            placeholder="Name"
+            onChange={e =>
+              setAuth({
+                ...auth,
+                name: e.target.value
+              })
+            }
+          />
 
-        <input
-          placeholder="Password"
-          onChange={e =>
-            setAuth({
-              ...auth,
-              password: e.target.value
-            })
-          }
-        />
+          <input
+            placeholder="Email"
+            onChange={e =>
+              setAuth({
+                ...auth,
+                email: e.target.value
+              })
+            }
+          />
 
-        <button onClick={register}>
-          Register
-        </button>
+          <input
+            type="password"
+            placeholder="Password"
+            onChange={e =>
+              setAuth({
+                ...auth,
+                password: e.target.value
+              })
+            }
+          />
 
-        <button onClick={login}>
-          Login
-        </button>
+          <button onClick={register}>
+            Register
+          </button>
+
+          <button onClick={login}>
+            Login
+          </button>
+
+        </div>
 
       </div>
     );
   }
 
-  // MAIN UI
+  // ---------------- MAIN UI ----------------
+
   return (
 
-    <div style={{ padding: 20 }}>
+    <div className="main-container">
 
-      <div className="navbar">
+      {/* NAVBAR */}
 
-  <h1>
-    🌍 Welcome {user.name}
-  </h1>
+    {/* TOP NAVBAR */}
+
+<div className="navbar">
+
+  <h1>🌍 Travel Buddy</h1>
 
 </div>
 
-      {/* CREATE TRIP */}
+      {/* ---------------- TRIPS PAGE ---------------- */}
 
-      <div className="card">
+      {page === "trips" && (
 
-        <h2>Create Trip</h2>
+        <>
 
-        <input
-          placeholder="Destination"
-          onChange={e =>
-            setForm({
-              ...form,
-              destination: e.target.value
-            })
-          }
-        />
+          {/* CREATE TRIP */}
 
-        <input
-          type="date"
-          onChange={e =>
-            setForm({
-              ...form,
-              startDate: e.target.value
-            })
-          }
-        />
+          <div className="card">
 
-        <input
-          type="date"
-          onChange={e =>
-            setForm({
-              ...form,
-              endDate: e.target.value
-            })
-          }
-        />
+            <h2>Create Trip</h2>
 
-        <input
-          placeholder="Interests"
-          onChange={e =>
-            setForm({
-              ...form,
-              interests: e.target.value
-            })
-          }
-        />
-
-<LocationPicker
-  setSelectedLocation={setSelectedLocation}
-  setDestinationName={setDestinationName}
-/>
-<button onClick={findNearby}>
-  Find Nearby Travelers
-</button>
-
-<button
-  onClick={() => {
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-
-        setSelectedLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-
-      }
-    );
-
-  }}
->
-  Use My Location
-</button>
-        <button onClick={createTrip}>
-          Create
-        </button>
-
-      </div>
-
-      {/* TRIPS */}
-
-      <h2>Trips</h2>
-
-     {trips.map(t => (
-
-  <div className="card" key={t._id}>
-
-    <h3>{t.destination}</h3>
-
-    <p>{t.destinationName}</p>
-
-    <iframe
-      width="100%"
-      height="250"
-      style={{
-        borderRadius: "15px",
-        marginTop: "10px"
-      }}
-      loading="lazy"
-      allowFullScreen
-      src={`https://www.google.com/maps?q=${t.location?.lat},${t.location?.lng}&z=10&output=embed`}
-    ></iframe>
-
-    <button
-      onClick={() => sendRequest(t)}
-    >
-      Connect
-    </button>
-
-  </div>
-))}
-
-      {/* REQUESTS */}
-
-      <h2>Requests</h2>
-
-      {requests.map(r => (
-
-        <div className="card" key={r._id}>
-
-          <p>{r.fromUser}</p>
-
-          <p>
-            {onlineUsers.includes(r.fromUser)
-              ? "🟢 Online"
-              : "⚫ Offline"}
-          </p>
-
-          <button
-            onClick={() => acceptRequest(r._id)}
-          >
-            Accept
-          </button>
-
-          <button
-            onClick={() => rejectRequest(r._id)}
-          >
-            Reject
-          </button>
-
-          {r.status === "accepted" && (
-
-            <button
-              onClick={() =>
-                loadChat(
-                  r.fromUser === user._id
-                    ? r.toUser
-                    : r.fromUser
-                )
+            <input
+              type="date"
+              onChange={e =>
+                setForm({
+                  ...form,
+                  startDate: e.target.value
+                })
               }
-            >
-              Open Chat 💬
+            />
+
+            <input
+              type="date"
+              onChange={e =>
+                setForm({
+                  ...form,
+                  endDate: e.target.value
+                })
+              }
+            />
+
+            <input
+              placeholder="Interests"
+              onChange={e =>
+                setForm({
+                  ...form,
+                  interests: e.target.value
+                })
+              }
+            />
+
+            <LocationPicker
+              setSelectedLocation={setSelectedLocation}
+              setDestinationName={setDestinationName}
+            />
+
+            <button onClick={findNearby}>
+              Find Nearby Travelers
             </button>
 
-          )}
+            <button
+              onClick={() => {
 
-        </div>
-      ))}
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
 
-      {/* CHAT */}
+                    setSelectedLocation({
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
+                    });
 
-      {chatUser && (
+                  }
+                );
 
-        <div className="card">
+              }}
+            >
+              Use My Location
+            </button>
 
-          <h3>Chat</h3>
+            <button onClick={createTrip}>
+              Create
+            </button>
 
-          {chat.map(c => (
+          </div>
 
-            <p key={c._id || Math.random()}>
+          {/* TRIPS */}
 
-              <b>
-                {c.sender === user._id
-                  ? "You"
-                  : "Them"}:
-              </b>
+          <h2>Trips</h2>
 
-              {" "}
-              {c.message}
+          <div className="trip-grid">
 
-            </p>
+            {trips.map(t => (
+
+              <div className="card" key={t._id}>
+
+                <h3>{t.destination}</h3>
+
+                <p>{t.destinationName}</p>
+
+                <iframe
+                  width="100%"
+                  height="250"
+                  style={{
+                    borderRadius: "15px",
+                    marginTop: "10px"
+                  }}
+                  loading="lazy"
+                  allowFullScreen
+                  src={`https://www.google.com/maps?q=${t.location?.lat},${t.location?.lng}&z=10&output=embed`}
+                ></iframe>
+
+                {t.userId !== user._id && (
+
+                  <button
+                    onClick={() => sendRequest(t)}
+                  >
+                    Connect
+                  </button>
+
+                )}
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </>
+
+      )}
+
+      {/* ---------------- REQUESTS PAGE ---------------- */}
+
+      {page === "requests" && (
+
+        <>
+
+          <h2>Requests</h2>
+
+          {requests.map(r => (
+
+            <div className="card" key={r._id}>
+
+             <p>{r.fromUser?.name}</p>
+
+              <p>
+                {onlineUsers.includes(r.fromUser?._id)
+                  ? "🟢 Online"
+                  : "⚫ Offline"}
+              </p>
+
+              <button
+                onClick={() => acceptRequest(r._id)}
+              >
+                Accept
+              </button>
+
+              <button
+                onClick={() => rejectRequest(r._id)}
+              >
+                Reject
+              </button>
+
+              {r.status === "accepted" && (
+
+                <button
+                  onClick={() => {
+
+                    loadChat(
+                      r.fromUser === user._id
+                        ? r.toUser
+                        : r.fromUser
+                    );
+
+                    setPage("chat");
+
+                  }}
+                >
+                  Open Chat 💬
+                </button>
+
+              )}
+
+            </div>
 
           ))}
 
-          <input
-            value={message}
-            onChange={e =>
-              setMessage(e.target.value)
-            }
-          />
+        </>
 
-          <button onClick={sendMessage}>
-            Send
-          </button>
-
-        </div>
       )}
-<div
-  style={{
-    marginTop: "40px",
-    textAlign: "center"
-  }}
->
+
+      {/* ---------------- CHAT PAGE ---------------- */}
+
+      {page === "chat" && (
+
+        <>
+
+          {chatUser ? (
+
+            <div className="card">
+
+              <h3>Chat</h3>
+
+              <div className="chat-box">
+
+                {chat.map(c => (
+
+                  <div
+                    key={c._id || Math.random()}
+                    className={
+                      c.sender === user._id
+                        ? "chat-message you"
+                        : "chat-message them"
+                    }
+                  >
+
+                    {c.message}
+
+                  </div>
+
+                ))}
+
+              </div>
+
+              <input
+                value={message}
+                placeholder="Type message..."
+                onChange={e =>
+                  setMessage(e.target.value)
+                }
+              />
+
+              <button onClick={sendMessage}>
+                Send
+              </button>
+
+            </div>
+
+          ) : (
+
+            <div className="card">
+
+              <h3>
+                Open a chat from Requests page
+              </h3>
+
+            </div>
+
+          )}
+
+        </>
+
+      )}
+      {/* BOTTOM NAVIGATION */}
+
+<div className="bottom-nav">
 
   <button
-    onClick={() => {
-      localStorage.clear();
-      setUser(null);
-    }}
+    onClick={() => setPage("trips")}
   >
-    Logout
+    Trips
+  </button>
+
+  <button
+    onClick={() => setPage("requests")}
+  >
+    Requests
+  </button>
+
+  <button
+    onClick={() => setPage("chat")}
+  >
+    Chat
   </button>
 
 </div>
+
+      {/* LOGOUT */}
+
+      <button
+        className="logout-btn"
+        onClick={() => {
+
+          localStorage.clear();
+
+          setUser(null);
+
+        }}
+      >
+        Logout
+      </button>
+
     </div>
   );
 }
 
 export default App;
-
