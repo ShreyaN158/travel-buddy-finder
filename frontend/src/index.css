@@ -12,6 +12,8 @@ body {
   color: #1a1a1a;
 }
 
+/* MAIN CONTAINER */
+
 .main-container {
   width: 100%;
   max-width: 1300px;
@@ -23,10 +25,14 @@ body {
   padding-left: 20px;
   padding-right: 20px;
 }
+
+/* ================= NAVBAR ================= */
+
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
+
   width: 100%;
   height: 80px;
 
@@ -41,11 +47,68 @@ body {
   z-index: 1000;
 }
 
+/* APP TITLE */
+
 .navbar h1 {
   color: #00a884;
   font-size: 30px;
   font-weight: bold;
 }
+
+/* RIGHT SIDE */
+
+.nav-right {
+  position: absolute;
+  right: 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* PROFILE */
+
+.profile-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-pic {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00a884;
+}
+
+.profile-box span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* DARK MODE BUTTON */
+
+.dark-toggle {
+  width: 45px;
+  height: 45px;
+
+  border-radius: 50%;
+  border: none;
+
+  font-size: 20px;
+  cursor: pointer;
+
+  background: black;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ================= BOTTOM NAV ================= */
 
 .bottom-nav {
   position: fixed;
@@ -78,32 +141,16 @@ body {
   background: none;
 }
 
-.nav-actions {
-  display: flex;
-  gap: 15px;
-}
-
-.nav-actions button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 10px;
-  background: #00a884;
-  color: white;
-  font-size: 15px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.nav-actions button:hover {
-  background: #008f70;
-}
+/* ================= CARDS ================= */
 
 .card {
   background: white;
   border-radius: 20px;
   padding: 25px;
   margin-bottom: 25px;
+
   box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+
   transition: 0.3s;
 }
 
@@ -117,13 +164,19 @@ body {
   color: #00a884;
 }
 
+/* ================= INPUTS ================= */
+
 input {
   width: 100%;
   height: 48px;
+
   border: 1px solid #ddd;
   border-radius: 12px;
+
   padding: 0 15px;
+
   margin-bottom: 15px;
+
   font-size: 15px;
 }
 
@@ -132,15 +185,22 @@ input:focus {
   border-color: #00a884;
 }
 
+/* ================= BUTTONS ================= */
+
 button {
   padding: 12px 20px;
+
   border: none;
   border-radius: 12px;
+
   background: #00a884;
   color: white;
+
   font-size: 15px;
   cursor: pointer;
+
   transition: 0.3s;
+
   margin-right: 10px;
   margin-top: 10px;
 }
@@ -148,6 +208,8 @@ button {
 button:hover {
   background: #008f70;
 }
+
+/* ================= TRIPS ================= */
 
 .trip-grid {
   display: grid;
@@ -159,12 +221,18 @@ iframe {
   border: none;
 }
 
+/* ================= CHAT ================= */
+
 .chat-box {
   max-height: 400px;
   overflow-y: auto;
+
   margin-bottom: 20px;
+
   padding: 15px;
+
   background: #f7f7f7;
+
   border-radius: 15px;
 }
 
@@ -186,6 +254,8 @@ iframe {
   border: 1px solid #ddd;
 }
 
+/* ================= LOGOUT ================= */
+
 .logout-btn {
   width: 100%;
   margin-top: 40px;
@@ -196,6 +266,8 @@ iframe {
   background: #e63939;
 }
 
+/* ================= TOURIST ATTRACTIONS ================= */
+
 .attractions {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
@@ -203,25 +275,219 @@ iframe {
   margin-top: 20px;
 }
 
+/* ================= DARK MODE ================= */
+
+.dark {
+  background: #121212;
+  color: white;
+  min-height: 100vh;
+}
+
+.dark .navbar {
+  background: #1e1e1e;
+}
+
+.dark .bottom-nav {
+  background: #1e1e1e;
+}
+
+.dark .card {
+  background: #1e1e1e;
+  color: white;
+}
+
+.dark input {
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #444;
+}
+
+.dark .profile-box span {
+  color: white;
+}
+
+.dark .chat-box {
+  background: #2a2a2a;
+}
+
+.dark .them {
+  background: #2a2a2a;
+  color: white;
+  border: none;
+}
+
+/* ================= MOBILE ================= */
+
 @media (max-width: 768px) {
 
-  .navbar {
-    flex-direction: column;
-    height: auto;
-    padding: 20px;
-    gap: 15px;
+  .navbar h1 {
+    font-size: 22px;
   }
 
-  .nav-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .nav-actions button {
-    width: 100%;
+  .profile-box span {
+    display: none;
   }
 
   .trip-grid {
     grid-template-columns: 1fr;
   }
+
+  .bottom-nav button {
+    font-size: 15px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}
+
+/* PROFILE INFO */
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info small {
+  color: gray;
+  font-size: 12px;
+}
+
+/* EDIT BUTTON */
+
+.edit-profile-btn {
+  background: #00a884;
+}
+
+/* PROFILE MODAL */
+
+/* PROFILE MODAL */
+
+.profile-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100vh;
+
+  background: rgba(0,0,0,0.6);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 99999;
+
+  overflow: hidden;
+}
+
+/* PROFILE CARD */
+
+.profile-card {
+  width: 90%;
+  max-width: 450px;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 20px;
+
+  scrollbar-width: none;
+}
+
+.profile-card::-webkit-scrollbar {
+  display: none;
+}
+
+.dark .profile-card {
+  background: #1e1e1e;
+}
+
+.profile-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.big-profile-pic {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  display: block;
+  margin: auto;
+  margin-bottom: 20px;
+
+  border: 4px solid #00a884;
+}
+
+.profile-details {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.profile-details p {
+  margin-bottom: 10px;
+}
+
+.profile-card hr {
+  margin: 20px 0;
+}
+
+.selected-place-card {
+
+  margin-top: 20px;
+  padding: 20px;
+
+  border-radius: 20px;
+
+  background: white;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+
+}
+
+.dark .selected-place-card {
+
+  background: #1e1e1e;
+  color: white;
+
+}
+
+.selected-place-card h3 {
+
+  color: #00a884;
+  margin-bottom: 10px;
+
+}
+
+.attractions-box {
+
+  margin-top: 15px;
+
+}
+
+.attraction-item {
+
+  padding: 12px;
+  margin-top: 10px;
+
+  border-radius: 12px;
+
+  background: #f5f5f5;
+
+}
+
+.dark .attraction-item {
+
+  background: #2c2c2c;
+
 }

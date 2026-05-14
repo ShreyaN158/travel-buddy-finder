@@ -1,167 +1,113 @@
-/*import {
-  GoogleMap,
-  LoadScript,
-  Marker,
-  Autocomplete
-} from "@react-google-maps/api";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
-import { useState, useRef } from "react";
+function MapClickHandler({
+  setSelectedLocation,
+  setDestinationName,
+  setAttractions,
+  setPlaceName
+}) {
+
+  useMapEvents({
+
+    async click(e) {
+
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      setSelectedLocation({
+        lat,
+        lng
+      });
+
+      // GET PLACE NAME
+
+      const locationRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+
+      const locationData = await locationRes.json();
+
+      const actualPlace =
+        locationData.address?.city ||
+        locationData.address?.town ||
+        locationData.address?.village ||
+        locationData.display_name;
+
+      setPlaceName(actualPlace);
+
+      setDestinationName(actualPlace);
+
+      // GET TOURIST ATTRACTIONS
+
+      const overpassQuery = `
+      [out:json];
+      (
+        node
+          ["tourism"="attraction"]
+          (around:10000,${lat},${lng});
+      );
+      out;
+      `;
+
+      const attractionRes = await fetch(
+        "https://overpass-api.de/api/interpreter",
+        {
+          method: "POST",
+          body: overpassQuery
+        }
+      );
+
+      const attractionData = await attractionRes.json();
+
+      const places = attractionData.elements.map(item => ({
+        name:
+          item.tags?.name ||
+          "Tourist Attraction",
+        lat: item.lat,
+        lon: item.lon
+      }));
+
+      setAttractions(places.slice(0, 8));
+    }
+
+  });
+
+  return null;
+}
 
 export default function LocationPicker({
   setSelectedLocation,
-  setDestinationName
+  setDestinationName,
+  setAttractions,
+  setPlaceName
 }) {
 
-  const [marker, setMarker] = useState({
-    lat: 12.9716,
-    lng: 77.5946
-  });
-
-  const autoRef = useRef();
-
-  const handlePlaceChanged = () => {
-
-    const place = autoRef.current.getPlace();
-
-    if (!place.geometry) return;
-
-    const location = {
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng()
-    };
-
-    setMarker(location);
-
-    setSelectedLocation(location);
-
-    setDestinationName(place.formatted_address);
-  };
-
-  const handleClick = (e) => {
-
-    const newPos = {
-      lat: e.latLng.lat(),
-      lng: e.latLng.lng()
-    };
-
-    setMarker(newPos);
-
-    setSelectedLocation(newPos);
-  };
-
   return (
 
-    <LoadScript
-      googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY"
-      libraries={["places"]}
-    >
-
-      <Autocomplete
-        onLoad={(ref) => autoRef.current = ref}
-        onPlaceChanged={handlePlaceChanged}
-      >
-
-        <input
-          type="text"
-          placeholder="Search destination"
-          style={{
-            width: "100%",
-            height: "45px",
-            marginBottom: "15px"
-          }}
-        />
-
-      </Autocomplete>
-
-      <GoogleMap
-        mapContainerStyle={{
-          width: "100%",
-          height: "350px",
-          borderRadius: "20px"
-        }}
-        center={marker}
-        zoom={8}
-        onClick={handleClick}
-      >
-
-        <Marker position={marker} />
-
-      </GoogleMap>
-
-    </LoadScript>
-  );
-}*/
-
-
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  useMapEvents
-} from "react-leaflet";
-
-import { useState } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// FIX MARKER ICONS
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
-function LocationMarker({ setSelectedLocation, setDestinationName }) {
-  const [position, setPosition] = useState(null);
-
-  useMapEvents({
-    click(e) {
-      const location = {
-        lat: e.latlng.lat,
-        lng: e.latlng.lng
-      };
-
-      setPosition(location);
-      setSelectedLocation(location);
-
-      setDestinationName(
-        `Lat: ${location.lat.toFixed(4)}, Lng: ${location.lng.toFixed(4)}`
-      );
-    }
-  });
-
-  return position ? (
-    <Marker position={position}>
-      <Popup>Destination Selected</Popup>
-    </Marker>
-  ) : null;
-}
-
-function LocationPicker({ setSelectedLocation, setDestinationName }) {
-  return (
     <MapContainer
-      center={[12.9716, 77.5946]}
+      center={[20.5937, 78.9629]}
       zoom={5}
-      style={{ height: "400px", width: "100%", borderRadius: "20px", marginTop: "15px" }}
+      style={{
+        height: "400px",
+        width: "100%",
+        borderRadius: "20px",
+        marginBottom: "20px"
+      }}
     >
+
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution="&copy; OpenStreetMap &copy; CARTO"
+        attribution='&copy; OpenStreetMap'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <LocationMarker
+      <MapClickHandler
         setSelectedLocation={setSelectedLocation}
         setDestinationName={setDestinationName}
+        setAttractions={setAttractions}
+        setPlaceName={setPlaceName}
       />
+
     </MapContainer>
   );
 }
-
-export default LocationPicker;

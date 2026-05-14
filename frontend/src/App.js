@@ -42,7 +42,19 @@ function App() {
     email: "",
     password: ""
   });
+const [editingProfile, setEditingProfile] = useState(false);
 
+const [profileData, setProfileData] = useState({
+  bio: "",
+  age: "",
+  gender: "",
+  country: "",
+  instagram: "",
+  profilePic: ""
+});
+
+const [attractions, setAttractions] = useState([]);
+const [placeName, setPlaceName] = useState("");
   // ---------------- SOCKET JOIN ----------------
 
   useEffect(() => {
@@ -111,7 +123,17 @@ function App() {
       alert(err.response?.data || "Login Failed");
     }
   };
+const saveProfile = () => {
 
+  setUser({
+    ...user,
+    ...profileData
+  });
+
+  setEditingProfile(false);
+
+  alert("Profile Updated");
+};
   // ---------------- LOAD TRIPS ----------------
 
   const loadTrips = () => {
@@ -252,7 +274,7 @@ function App() {
 
     setMessage("");
   };
-
+const [darkMode, setDarkMode] = useState(false);
   // ---------------- INITIAL LOAD ----------------
 
   useEffect(() => {
@@ -327,18 +349,66 @@ function App() {
 
   return (
 
-    <div className="main-container">
+    <div className={darkMode ? "main-container dark" : "main-container"}>
 
       {/* NAVBAR */}
 
     {/* TOP NAVBAR */}
 
+{/* TOP NAVBAR */}
+
 <div className="navbar">
 
   <h1>🌍 Travel Buddy</h1>
 
+  <div className="nav-right">
+
+    {/* PROFILE */}
+
+  <div
+  className="profile-box"
+  onClick={() => setEditingProfile(true)}
+>
+
+  <img
+    src={
+      user.profilePic ||
+      profileData.profilePic ||
+      "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+    }
+    alt="profile"
+    className="profile-pic"
+  />
+
+  <div className="profile-info">
+
+    <span>{user.name}</span>
+
+    <small>
+      {profileData.country || "Traveler"}
+    </small>
+
+  </div>
+
 </div>
 
+    {/* DARK MODE */}
+<button
+  className="edit-profile-btn"
+  onClick={() => setEditingProfile(true)}
+>
+  Profile
+</button>
+    <button
+      className="dark-toggle"
+      onClick={() => setDarkMode(!darkMode)}
+    >
+      {darkMode ? "☀️" : "🌙"}
+    </button>
+
+  </div>
+
+</div>
       {/* ---------------- TRIPS PAGE ---------------- */}
 
       {page === "trips" && (
@@ -381,12 +451,64 @@ function App() {
               }
             />
 
-            <LocationPicker
-              setSelectedLocation={setSelectedLocation}
-              setDestinationName={setDestinationName}
-            />
+    <LocationPicker
+  setSelectedLocation={setSelectedLocation}
+  setDestinationName={setDestinationName}
+  setAttractions={setAttractions}
+  setPlaceName={setPlaceName}
+  darkMode={darkMode}
+/>
 
-            <button onClick={findNearby}>
+{/* SELECTED PLACE DETAILS */}
+
+{placeName && (
+
+  <div className="selected-place-card">
+
+    <h3>{placeName}</h3>
+
+    <p>{destinationName}</p>
+
+    {selectedLocation && (
+      <p>
+        Latitude: {selectedLocation.lat.toFixed(4)} |
+        Longitude: {selectedLocation.lng.toFixed(4)}
+      </p>
+    )}
+
+    {attractions.length > 0 && (
+
+      <div className="attractions-box">
+
+        <h4>Top Tourist Attractions</h4>
+
+        {attractions.map((place, index) => (
+
+          <div
+            key={index}
+            className="attraction-item"
+          >
+            📍 {place.name}
+
+<br />
+
+<small>
+  Lat: {Number(place.lat).toFixed(4)} |
+  Lng: {Number(place.lon).toFixed(4)}
+</small>
+          </div>
+
+        ))}
+
+      </div>
+
+    )}
+
+  </div>
+
+)}
+
+<button onClick={findNearby}>
               Find Nearby Travelers
             </button>
 
@@ -583,6 +705,117 @@ function App() {
         </>
 
       )}
+
+     {editingProfile && (
+
+  <div className="profile-modal">
+
+    <div className="profile-card">
+
+      <img
+        src={
+          profileData.profilePic ||
+          "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+        }
+        alt="profile"
+        className="big-profile-pic"
+      />
+
+      <h2>{user.name}</h2>
+
+      <p>{profileData.bio}</p>
+
+      <div className="profile-details">
+
+        <p><b>Age:</b> {profileData.age}</p>
+
+        <p><b>Gender:</b> {profileData.gender}</p>
+
+        <p><b>Country:</b> {profileData.country}</p>
+
+        <p><b>Instagram:</b> @{profileData.instagram}</p>
+
+      </div>
+
+      <hr />
+
+      <h3>Edit Profile</h3>
+
+      <input
+        placeholder="Profile Image URL"
+        onChange={e =>
+          setProfileData({
+            ...profileData,
+            profilePic: e.target.value
+          })
+        }
+      />
+
+      <input
+        placeholder="Bio"
+        onChange={e =>
+          setProfileData({
+            ...profileData,
+            bio: e.target.value
+          })
+        }
+      />
+
+      <input
+        placeholder="Age"
+        onChange={e =>
+          setProfileData({
+            ...profileData,
+            age: e.target.value
+          })
+        }
+      />
+
+      <input
+        placeholder="Gender"
+        onChange={e =>
+          setProfileData({
+            ...profileData,
+            gender: e.target.value
+          })
+        }
+      />
+
+      <input
+        placeholder="Country"
+        onChange={e =>
+          setProfileData({
+            ...profileData,
+            country: e.target.value
+          })
+        }
+      />
+
+      <input
+        placeholder="Instagram Username"
+        onChange={e =>
+          setProfileData({
+            ...profileData,
+            instagram: e.target.value
+          })
+        }
+      />
+
+      <button onClick={saveProfile}>
+        Save Profile
+      </button>
+
+      <button
+        onClick={() => setEditingProfile(false)}
+      >
+        Close
+      </button>
+
+    </div>
+
+  </div>
+
+)}
       {/* BOTTOM NAVIGATION */}
 
 <div className="bottom-nav">
@@ -604,6 +837,8 @@ function App() {
   >
     Chat
   </button>
+
+
 
 </div>
 
